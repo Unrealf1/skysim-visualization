@@ -28,10 +28,10 @@ class SimulationParameters(
         var field_magnitude: SimpleStringProperty = SimpleStringProperty("0.0"),
         var free_path: SimpleStringProperty = SimpleStringProperty("0.0"),
         var gain: SimpleStringProperty = SimpleStringProperty("0.0"),
-        var particle_limit: SimpleStringProperty = SimpleStringProperty("0"),
+        var particle_limit: SimpleStringProperty = SimpleStringProperty("15000"),
         var output: SimpleStringProperty = SimpleStringProperty(""),
-        var seed: SimpleStringProperty = SimpleStringProperty("0.0"),
-        var save_plot: SimpleStringProperty = SimpleStringProperty(""),
+        var seed: SimpleStringProperty = SimpleStringProperty(""),
+        var save_plot: SimpleStringProperty = SimpleStringProperty("./last_simulation"),
         var seed_photons: SimpleStringProperty = SimpleStringProperty("")
 )
 //TODO : add minimum window size
@@ -159,6 +159,11 @@ class App(
             panel.spacing = 5.0
             panel.alignment = Pos.TOP_CENTER
 
+            val stop = Button("[]")
+            stop.onAction = EventHandler {
+                visualizer.setCurrentGen(0)
+                updateControlCounter(visualizer)
+            }
             val label_counter = Label()
             label_counter.textProperty().bind(controlCounter)
 
@@ -184,7 +189,7 @@ class App(
                 visualizer.showNextGeneration()
                 updateControlCounter(visualizer)
             }
-            panel.children.addAll(back, play, forward, label_counter)
+            panel.children.addAll(stop, back, play, forward, label_counter)
             return panel
         }
 
@@ -277,7 +282,21 @@ class App(
             return startButton
         }
 
-        fun prepareUI(visualizer: Visualizer): Node {
+        private fun prepareFullScreenButton(mainStage: Stage): Button {
+            //TODO : resize things on transition (not only full screen, but _any_ resize)
+            val button = Button("Fullscreen")
+            button.onAction = EventHandler {
+                mainStage.isFullScreen = !mainStage.isFullScreen
+                if (mainStage.isFullScreen) {
+                    button.text = "Window"
+                } else {
+                    button.text = "Fullscreen"
+                }
+            }
+            return button
+        }
+
+        fun prepareUI(visualizer: Visualizer, mainStage: Stage): Node {
             val root = VBox()
             root.spacing = 10.0
             root.maxHeight = 50.0
@@ -303,6 +322,8 @@ class App(
 
             root.children.add(prepareInfoScreen())
 
+            root.children.add(prepareFullScreenButton(mainStage))
+
             return scene
         }
     }
@@ -323,7 +344,7 @@ class App(
         val visualization = visualizerPreparator.prepareVisualization(
                 simulationParameters.cloud_size.get().toDouble())
 
-        val ui = uiPreparator.prepareUI(visualization)
+        val ui = uiPreparator.prepareUI(visualization, mainStage)
 
         root.add(ui, 1, 0)
         root.add(visualization.scene, 0, 0)
