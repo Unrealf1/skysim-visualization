@@ -1,7 +1,6 @@
 package skysim.visualization
 
 import javafx.application.Application
-import javafx.beans.property.Property
 import javafx.beans.property.SimpleBooleanProperty
 import javafx.event.EventHandler
 import javafx.stage.Stage
@@ -11,6 +10,7 @@ import javafx.scene.shape.*
 import javafx.scene.transform.Rotate
 import javafx.beans.property.SimpleDoubleProperty
 import javafx.beans.property.SimpleStringProperty
+import javafx.geometry.Point2D
 import javafx.scene.input.MouseEvent
 import javafx.scene.layout.*
 import javafx.scene.Scene
@@ -100,7 +100,7 @@ class App(
                     root,
                     visualizationWidth,
                     visualizationHeight,
-                    true,
+                    false,
                     SceneAntialiasing.DISABLED)
             scene.fill = Color.BLACK
 
@@ -125,6 +125,10 @@ class App(
         }
     }
     private val visualizerPreparator = VisualizerPreparator()
+
+    enum class EButton {
+        stop, back, play, forward
+    }
 
     inner class UIPreparator {
         private val minInfoScreenWidth = 10.0
@@ -154,25 +158,59 @@ class App(
             controlCounter.set("${visualizer.getCurrentGen() + 1} / ${visualizer.size()}")
         }
 
+        private fun makeArrow(handleUp: Point2D, middleUp: Point2D, point: Point2D): Polygon {
+            return Polygon(
+                    handleUp.x, handleUp.y,
+                    middleUp.x, handleUp.y,
+                    middleUp.x, middleUp.y,
+                    point.x, point.y,
+                    middleUp.x, -middleUp.y,
+                    middleUp.x, -handleUp.y,
+                    handleUp.x, -handleUp.y)
+        }
+
+        private fun prepareButtonVisual(button: EButton): Node {
+            return when (button) {
+                EButton.back -> makeArrow(
+                        Point2D(5.0, 3.0),
+                        Point2D(0.0, 5.0),
+                        Point2D(-5.0, 0.0))
+                        .also { it.fill = Color.BLACK }
+                EButton.play -> Polygon(0.0, 5.0, 0.0, -5.0, 8.66, 0.0)
+                        .also { it.fill = Color.RED }
+                EButton.forward -> makeArrow(
+                        Point2D(-5.0, 3.0),
+                        Point2D(0.0, 5.0),
+                        Point2D(5.0, 0.0))
+                        .also { it.fill = Color.BLACK }
+                EButton.stop -> Rectangle(10.0, 10.0, Color.BLACK)
+            }
+        }
+
         private fun prepareControlPanel(visualizer: Visualizer): Node {
             val panel = HBox()
             panel.spacing = 5.0
-            panel.alignment = Pos.TOP_CENTER
+            panel.alignment = Pos.CENTER
 
-            val stop = Button("[]")
+            val stop = Button()
+            stop.graphic = prepareButtonVisual(EButton.stop)
             stop.onAction = EventHandler {
                 visualizer.setCurrentGen(0)
                 updateControlCounter(visualizer)
             }
+
             val label_counter = Label()
             label_counter.textProperty().bind(controlCounter)
 
-            val back = Button("<-")
+            val back = Button()
+            back.graphic = prepareButtonVisual(EButton.back)
             back.onAction = EventHandler {
                 visualizer.showPrevGeneration()
                 updateControlCounter(visualizer)
             }
-            val play = Button("|>")
+
+            val play = Button()
+            play.graphic = prepareButtonVisual(EButton.play)
             //var playing_flag: AtomicBoolean = AtomicBoolean(false)
             //To do: asynch run
             play.onAction = EventHandler {
@@ -184,11 +222,14 @@ class App(
                 play.text = "|>"*/
                 println("Not ready!")
             }
-            val forward = Button("->")
+
+            val forward = Button()
+            forward.graphic = prepareButtonVisual(EButton.forward)
             forward.onAction = EventHandler {
                 visualizer.showNextGeneration()
                 updateControlCounter(visualizer)
             }
+
             panel.children.addAll(stop, back, play, forward, label_counter)
             return panel
         }
@@ -306,7 +347,7 @@ class App(
                     root,
                     uiWidth,
                     uiHeight,
-                    true,
+                    false,
                     SceneAntialiasing.DISABLED
             )
             scene.fill = Color.AQUAMARINE
@@ -333,7 +374,7 @@ class App(
 
     override fun start(mainStage: Stage) {
         val root = GridPane()
-        val scene = Scene(root, windowWidth, windowHeight, true)
+        val scene = Scene(root, windowWidth, windowHeight, false)
         scene.fill = Color.BLACK
 
         // Configure layout
