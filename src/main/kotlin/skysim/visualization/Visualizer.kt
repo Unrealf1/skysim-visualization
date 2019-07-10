@@ -36,23 +36,22 @@ class Visualizer(val scene: SubScene, val  photonGroup: Group) {
         photonGroup.children.clear()
     }
 
+    fun setCurrentGen(value: Int): Boolean {
+        if (value < 0 || value >= generations.size) {
+            return false
+        }
+        current_gen = value
+        showGeneration()
+        return true
+    }
+
     fun showNextGeneration(): Boolean{
         current_gen++
         if (current_gen >= generations.size) {
             current_gen--
-            println("Fail")
             return false
         }
-        clearPhotonGroup()
-        val gen = generations[current_gen]
-        for (photon in gen.photons) {
-            val visual_photon = Sphere(photonRadius)
-            visual_photon.translateXProperty().set(photon.x)
-            visual_photon.translateYProperty().set(photon.y)
-            visual_photon.translateZProperty().set(photon.z)
-            photonGroup.children.add(visual_photon)
-        }
-        println("OK")
+        showGeneration()
         return true
     }
 
@@ -62,6 +61,11 @@ class Visualizer(val scene: SubScene, val  photonGroup: Group) {
             current_gen++
             return false
         }
+        showGeneration()
+        return true
+    }
+
+    private fun showGeneration() {
         clearPhotonGroup()
         val gen = generations[current_gen]
         for (photon in gen.photons) {
@@ -71,6 +75,5 @@ class Visualizer(val scene: SubScene, val  photonGroup: Group) {
             visual_photon.translateZProperty().set(photon.z)
             photonGroup.children.add(visual_photon)
         }
-        return false
     }
 }
