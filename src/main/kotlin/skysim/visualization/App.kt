@@ -1,6 +1,7 @@
 package skysim.visualization
 
 import javafx.application.Application
+import javafx.application.Platform
 import javafx.beans.property.SimpleBooleanProperty
 import javafx.event.EventHandler
 import javafx.stage.Stage
@@ -19,7 +20,9 @@ import javafx.scene.control.*
 import javafx.scene.input.ScrollEvent
 import javafx.scene.layout.VBox
 import javafx.stage.Modality
-import kotlinx.coroutines.runBlocking
+import kotlinx.atomicfu.AtomicBoolean
+import kotlinx.coroutines.*
+import javafx.concurrent.Task
 
 class SimulationParameters(
         var cell_length: SimpleStringProperty = SimpleStringProperty("0.0"),
@@ -117,7 +120,7 @@ class App(
 
             mouseController.initMouseControl(fieldGroup, scene)
             val scroll_handler = { event: ScrollEvent ->
-                scene.camera.translateZProperty().set(scene.camera.translateZ +  event.deltaY)
+                scene.camera.translateZProperty().set(scene.camera.translateZ +  event.deltaY * 8.0)
             }
             scene.onScroll = EventHandler(scroll_handler)
 
@@ -211,15 +214,33 @@ class App(
 
             val play = Button()
             play.graphic = prepareButtonVisual(EButton.play)
-            //var playing_flag: AtomicBoolean = AtomicBoolean(false)
+            //var playing_flag: AtomicBoolean
             //To do: asynch run
+            //This is not working
             play.onAction = EventHandler {
-                /*play.text = "[]"
-                while (visualizer.showNextGeneration()) {
-                    Thread.sleep(1000)
+                val task = object : Task<Void>() {
+                    @Throws(InterruptedException::class)
+                    public override fun call(): Void? { runBlocking {
+                        while (visualizer.showNextGeneration()) {
+                            updateControlCounter(visualizer)
+                            delay(100)
+                        }}
+
+                        return null
+                    }
+                }
+                task.setOnSucceeded { e ->
+                    println("Yay!")
+                }
+                task.setOnCancelled { event ->
+                    println("Sad :(")
+                    println(event)
                 }
 
-                play.text = "|>"*/
+                val thread = Thread(task)
+                thread.setDaemon(true)
+                thread.start()
+
                 println("Not ready!")
             }
 
