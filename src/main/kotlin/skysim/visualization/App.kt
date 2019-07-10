@@ -36,8 +36,8 @@ class SimulationParameters(
 )
 //TODO : add minimum window size
 class App(
-        private val windowWidth: Double = 900.0,
-        private val windowHeight: Double = 600.0): Application() {
+        private val windowWidth: Double = 1200.0,
+        private val windowHeight: Double = 900.0): Application() {
     private val visualizationWidth = windowWidth * 0.75
     private val visualizationHeight = windowHeight
     private val uiWidth = windowWidth - visualizationWidth
@@ -368,7 +368,7 @@ class App(
             val seedPhotons = "seed-photons"
             val dynamicPlot = "dynamic-plot"
         }
-        private val version = "0.1.1-Alpha"
+        private val version = "0.1.5-Alpha"
 
         private val helpMessage = "\tVisualizer version: " + version + "\n" +
                 "\tSimulator version: " + skysim.sky.version + "\n" +
