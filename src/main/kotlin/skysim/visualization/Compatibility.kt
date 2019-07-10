@@ -4,6 +4,31 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
 import skysim.sky.skysim
+import java.nio.file.Files
+import java.nio.file.Path
+import java.nio.file.Paths
+
+//Temporary solution
+private fun Path.exists() : Boolean = Files.exists(this)
+ 
+/**
+ * Wraps Files.isDirectory
+ */
+private fun Path.isFile() : Boolean = !Files.isDirectory(this)
+ 
+/**
+ * Delete a Path object
+ */
+private fun Path.delete() : Boolean {
+    return if(isFile() && exists()){
+        //Actual delete operation
+        Files.delete(this)
+        true
+    } else {
+        false
+    }
+}
+
 
 fun composeArgs(param: SimulationParameters): ArrayList<String> {
     val args = arrayListOf("visualization")
@@ -46,7 +71,7 @@ fun composeArgs(param: SimulationParameters): ArrayList<String> {
         args.add(param.seed.get())
     }
 
-    if (param.seed.get() != "") {
+    if (param.save_plot.get() != "") {
         args.add("--save-plot")
         args.add(param.save_plot.get())
     }
