@@ -1,46 +1,47 @@
 package skysim.visualization
 
 import javafx.application.Application
+import javafx.beans.property.Property
+import javafx.beans.property.SimpleBooleanProperty
 import javafx.event.EventHandler
-import javafx.scene.control.Button
 import javafx.stage.Stage
 import javafx.scene.*
 import javafx.scene.paint.*
 import javafx.scene.shape.*
 import javafx.scene.transform.Rotate
 import javafx.beans.property.SimpleDoubleProperty
+import javafx.beans.property.SimpleStringProperty
 import javafx.scene.input.MouseEvent
 import javafx.scene.layout.*
 import javafx.scene.Scene
 import javafx.geometry.Pos
-import javafx.scene.control.Label
-import javafx.scene.control.TextField
+import javafx.scene.control.*
 import javafx.scene.input.ScrollEvent
 import javafx.scene.layout.VBox
 import javafx.stage.Modality
 import kotlinx.coroutines.runBlocking
 
 class SimulationParameters(
-    var cell_length: Double? = null,
-    var cloud_size: Double = 100.0,
-    var dynamic_plot: Boolean? = null,
-    var field_magnitude: Double? = null,
-    var free_path: Double? = null,
-    var gain: Double? = null,
-    var particle_limit: Double? = null,
-    var output: String? = null,
-    var seed: Double? = null,
-    var save_plot: String? = null,
-    var seed_photons: String? = null
+        var cell_length: SimpleStringProperty = SimpleStringProperty("0.0"),
+        var cloud_size: SimpleStringProperty = SimpleStringProperty("1000.0"),
+        var dynamic_plot: SimpleBooleanProperty = SimpleBooleanProperty(false),
+        var field_magnitude: SimpleStringProperty = SimpleStringProperty("0.0"),
+        var free_path: SimpleStringProperty = SimpleStringProperty("0.0"),
+        var gain: SimpleStringProperty = SimpleStringProperty("0.0"),
+        var particle_limit: SimpleStringProperty = SimpleStringProperty("0"),
+        var output: SimpleStringProperty = SimpleStringProperty(""),
+        var seed: SimpleStringProperty = SimpleStringProperty("0.0"),
+        var save_plot: SimpleStringProperty = SimpleStringProperty(""),
+        var seed_photons: SimpleStringProperty = SimpleStringProperty("")
 )
-
-class App: Application() {
-    private val width = 1200.0
-    private val height = 1000.0
-    private val visualizationWidth = 900.0
-    private val visualizationHeight = height
-    private val uiWidth = width - visualizationWidth
-    private val uiHeight = height
+//TODO : add minimum window size
+class App(
+        private val windowWidth: Double = 900.0,
+        private val windowHeight: Double = 600.0): Application() {
+    private val visualizationWidth = windowWidth * 0.75
+    private val visualizationHeight = windowHeight
+    private val uiWidth = windowWidth - visualizationWidth
+    private val uiHeight = windowHeight
 
     class MouseController {
         // Rotation with mouse from
@@ -126,15 +127,45 @@ class App: Application() {
     private val visualizerPreparator = VisualizerPreparator()
 
     inner class UIPreparator {
+        private val minInfoScreenWidth = 10.0
+        private val minInfoScreenHeight = 10.0
+
+        private fun updateInfo(){
+
+        }
+
+        private fun prepareInfoScreen(): Node {
+            return Group()
+            val infoWidth = uiWidth * 0.8
+            if (infoWidth < minInfoScreenWidth) {
+                return Group()
+            }
+            val infoHeight = uiHeight * 0.2
+            if (infoHeight < minInfoScreenHeight) {
+                return Group()
+            }
+
+            return Rectangle(infoWidth, infoHeight, Color.YELLOW)
+        }
+
+        val controlCounter = SimpleStringProperty("0 / 0")
+
+        fun updateControlCounter(visualizer: Visualizer) {
+            controlCounter.set("${visualizer.getCurrentGen() + 1} / ${visualizer.size()}")
+        }
+
         private fun prepareControlPanel(visualizer: Visualizer): Node {
             val panel = HBox()
             panel.spacing = 5.0
+            panel.alignment = Pos.TOP_CENTER
 
-            val label_counter = Label("0 / 0")
+            val label_counter = Label()
+            label_counter.textProperty().bind(controlCounter)
+
             val back = Button("<-")
             back.onAction = EventHandler {
                 visualizer.showPrevGeneration()
-                label_counter.text = "${visualizer.getCurrentGen() + 1} / ${visualizer.size()}"
+                updateControlCounter(visualizer)
             }
             val play = Button("|>")
             //var playing_flag: AtomicBoolean = AtomicBoolean(false)
@@ -151,42 +182,55 @@ class App: Application() {
             val forward = Button("->")
             forward.onAction = EventHandler {
                 visualizer.showNextGeneration()
-                label_counter.text = "${visualizer.getCurrentGen() + 1} / ${visualizer.size()}"
+                updateControlCounter(visualizer)
             }
             panel.children.addAll(back, play, forward, label_counter)
             return panel
         }
 
-        private val parametersSpasing = 15.0
+        private val parametersHorizontalSpacing = 15.0
+        private val parametersVerticalSpacing = 5.0
 
-        private fun prepareParameterLine(name: String): Node {
-            val textfield = TextField()
+        private fun prepareParameterLine(name: String, parameter: SimpleStringProperty): Node {
+            val textfield = TextField(parameter.get())
+            parameter.bind(textfield.textProperty())
             val label = Label(name)
             val node = HBox()
-            node.spacing = parametersSpasing
+            node.alignment = Pos.TOP_CENTER
+            node.spacing = parametersHorizontalSpacing
             node.children.addAll(label, textfield)
             return node
         }
 
-        private fun prepareUIParametersButton(): Button {
-            return Button("Apply")
-        }
-
         private fun prepareUIParameters(): Node {
             val uiParameters = VBox()
-            uiParameters.children.add(prepareParameterLine("cell-length"))
-            uiParameters.children.add(prepareParameterLine("cloud-size"))
-            uiParameters.children.add(Button("dynamic-plot"))
-            uiParameters.children.add(prepareParameterLine("field-magnitude"))
-            uiParameters.children.add(prepareParameterLine("free-path"))
-            uiParameters.children.add(prepareParameterLine("gain"))
-            uiParameters.children.add(prepareParameterLine("particle-limit"))
-            uiParameters.children.add(prepareParameterLine("output"))
-            uiParameters.children.add(prepareParameterLine("seed"))
-            uiParameters.children.add(prepareParameterLine("save-plot"))
-            uiParameters.children.add(prepareParameterLine("seed-photons"))
+            uiParameters.spacing = parametersVerticalSpacing
+            uiParameters.alignment = Pos.TOP_CENTER
 
-            uiParameters.children.add(prepareUIParametersButton())
+            uiParameters.children.add(prepareParameterLine(Names.cellLength,
+                    simulationParameters.cell_length))
+            uiParameters.children.add(prepareParameterLine(Names.cloudSize,
+                    simulationParameters.cloud_size))
+            uiParameters.children.add(prepareParameterLine(Names.fieldMagnitude,
+                    simulationParameters.field_magnitude))
+            uiParameters.children.add(prepareParameterLine(Names.freePath,
+                    simulationParameters.free_path))
+            uiParameters.children.add(prepareParameterLine(Names.gain,
+                    simulationParameters.gain))
+            uiParameters.children.add(prepareParameterLine(Names.particleLimit,
+                    simulationParameters.particle_limit))
+            uiParameters.children.add(prepareParameterLine(Names.output,
+                    simulationParameters.output))
+            uiParameters.children.add(prepareParameterLine(Names.seed,
+                    simulationParameters.seed))
+            uiParameters.children.add(prepareParameterLine(Names.savePlot,
+                    simulationParameters.save_plot))
+            uiParameters.children.add(prepareParameterLine(Names.seedPhotons,
+                    simulationParameters.seed_photons))
+            val checkBox = CheckBox(Names.dynamicPlot)
+            uiParameters.children.add(checkBox)
+            // Is this right property?
+            simulationParameters.dynamic_plot.bind(checkBox.selectedProperty())
 
             return uiParameters
         }
@@ -227,6 +271,7 @@ class App: Application() {
                         visualizer.addGeneration(current_generation)
                         i += current_generation.photons.size
                     } while (current_generation.photons.size != 0)
+                    updateControlCounter(visualizer)
                 }
             }
             return startButton
@@ -236,6 +281,7 @@ class App: Application() {
             val root = VBox()
             root.spacing = 10.0
             root.maxHeight = 50.0
+            root.alignment = Pos.TOP_CENTER
 
             val scene = SubScene(
                     root,
@@ -254,6 +300,9 @@ class App: Application() {
             root.children.add(prepareHelpButton())
 
             root.children.add(prepareStartButton(visualizer))
+
+            root.children.add(prepareInfoScreen())
+
             return scene
         }
     }
@@ -263,7 +312,7 @@ class App: Application() {
 
     override fun start(mainStage: Stage) {
         val root = GridPane()
-        val scene = Scene(root, width, height, true)
+        val scene = Scene(root, windowWidth, windowHeight, true)
         scene.fill = Color.BLACK
 
         // Configure layout
@@ -271,7 +320,9 @@ class App: Application() {
         root.hgap = 0.0
         root.vgap = 0.0
 
-        val visualization = visualizerPreparator.prepareVisualization(simulationParameters.cloud_size)
+        val visualization = visualizerPreparator.prepareVisualization(
+                simulationParameters.cloud_size.get().toDouble())
+
         val ui = uiPreparator.prepareUI(visualization)
 
         root.add(ui, 1, 0)
@@ -283,6 +334,19 @@ class App: Application() {
     }
 
     companion object {
+        object Names {
+            val cellLength = "cell-length"
+            val cloudSize = "cloud-size"
+            val fieldMagnitude = "field-magnitude"
+            val freePath = "free-path"
+            val gain = "gain"
+            val particleLimit = "particle-limit"
+            val output = "output"
+            val seed = "seed"
+            val savePlot = "save-plot"
+            val seedPhotons = "seed-photons"
+            val dynamicPlot = "dynamic-plot"
+        }
         private val version = "0.1.1-Alpha"
 
         private val helpMessage = "\tVisualizer version: " + version + "\n" +
