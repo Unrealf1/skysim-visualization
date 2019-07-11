@@ -42,12 +42,12 @@ class SimulationParameters(
 )
 //TODO : add minimum window size
 class App(
-        private val windowWidth: Double = 1200.0,
-        private val windowHeight: Double = 900.0): Application() {
-    private val visualizationWidth = windowWidth * 0.75
-    private val visualizationHeight = windowHeight
-    private val uiWidth = windowWidth - visualizationWidth
-    private val uiHeight = windowHeight
+        private val windowWidth: SimpleDoubleProperty = SimpleDoubleProperty(1200.0),
+        private val windowHeight: SimpleDoubleProperty = SimpleDoubleProperty(900.0)): Application() {
+    private val visualizationWidth = SimpleDoubleProperty(windowWidth.get() * 0.75)
+    private val visualizationHeight = SimpleDoubleProperty(windowHeight.get())
+    private val uiWidth = SimpleDoubleProperty(windowWidth.get() - visualizationWidth.get())
+    private val uiHeight = SimpleDoubleProperty(windowHeight.get())
 
     class MouseController {
         // Rotation with mouse from
@@ -104,10 +104,12 @@ class App(
             val root = Group()
             val scene = SubScene(
                     root,
-                    visualizationWidth,
-                    visualizationHeight,
+                    visualizationWidth.get(),
+                    visualizationHeight.get(),
                     false,
                     SceneAntialiasing.DISABLED)
+            scene.widthProperty().bind(visualizationWidth)
+            scene.heightProperty().bind(visualizationHeight)
             scene.fill = Color.BLACK
 
             val fieldGroup = Group()
@@ -137,27 +139,6 @@ class App(
     }
 
     inner class UIPreparator {
-        private val minInfoScreenWidth = 10.0
-        private val minInfoScreenHeight = 10.0
-
-        private fun updateInfo(){
-
-        }
-
-        private fun prepareInfoScreen(): Node {
-            return Group()
-            val infoWidth = uiWidth * 0.8
-            if (infoWidth < minInfoScreenWidth) {
-                return Group()
-            }
-            val infoHeight = uiHeight * 0.2
-            if (infoHeight < minInfoScreenHeight) {
-                return Group()
-            }
-
-            return Rectangle(infoWidth, infoHeight, Color.YELLOW)
-        }
-
         val controlCounter = SimpleStringProperty("0 / 0")
 
         fun updateControlCounter(visualizer: Visualizer) {
@@ -397,11 +378,14 @@ class App(
 
             val scene = SubScene(
                     root,
-                    uiWidth,
-                    uiHeight,
+                    uiWidth.get(),
+                    uiHeight.get(),
                     false,
                     SceneAntialiasing.DISABLED
             )
+            scene.widthProperty().bind(uiWidth)
+            scene.heightProperty().bind(uiHeight)
+
             scene.fill = Color.WHEAT
 
             root.children.add(prepareControlPanel(visualizer))
@@ -413,8 +397,6 @@ class App(
 
             root.children.add(prepareStartButton(visualizer))
 
-            root.children.add(prepareInfoScreen())
-
             root.children.add(prepareFullScreenButton(mainStage))
 
             return scene
@@ -424,10 +406,20 @@ class App(
 
     val simulationParameters = SimulationParameters()
 
+    private fun bindProperties() {
+        visualizationHeight.bind(windowHeight)
+
+        uiHeight.bind(windowHeight)
+    }
+
     override fun start(mainStage: Stage) {
         val root = GridPane()
-        val scene = Scene(root, windowWidth, windowHeight, false)
+        val scene = Scene(root, windowWidth.get(), windowHeight.get(), false)
         scene.fill = Color.BLACK
+
+        windowWidth.bind(mainStage.widthProperty())
+        windowHeight.bind(mainStage.heightProperty())
+        bindProperties()
 
         // Configure layout
         root.isGridLinesVisible = false
