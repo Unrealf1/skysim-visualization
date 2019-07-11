@@ -1,5 +1,6 @@
 package skysim.visualization
 
+import javafx.animation.Animation
 import javafx.application.Application
 import javafx.application.Platform
 import javafx.beans.property.SimpleBooleanProperty
@@ -23,6 +24,14 @@ import javafx.stage.Modality
 import kotlinx.atomicfu.AtomicBoolean
 import kotlinx.coroutines.*
 import javafx.concurrent.Task
+import kotlinx.coroutines.Runnable
+import java.time.Clock
+import java.util.logging.Handler
+import kotlin.reflect.jvm.internal.impl.metadata.ProtoBuf
+import javafx.animation.KeyFrame
+import javafx.animation.Timeline
+import javafx.util.Duration
+
 
 class SimulationParameters(
         var cell_length: SimpleStringProperty = SimpleStringProperty("0.0"),
@@ -130,7 +139,7 @@ class App(
     private val visualizerPreparator = VisualizerPreparator()
 
     enum class EButton {
-        stop, back, play, forward
+        stop, back, play, forward, pause
     }
 
     inner class UIPreparator {
@@ -187,7 +196,29 @@ class App(
                         Point2D(5.0, 0.0))
                         .also { it.fill = Color.BLACK }
                 EButton.stop -> Rectangle(10.0, 10.0, Color.BLACK)
+                EButton.pause -> HBox(
+                        Rectangle(4.0, 10.0, Color.GREY),
+                        Rectangle(4.0, 10.0, Color.GREY)
+                ).also {
+                    it.spacing = 2.0
+                    it.alignment = Pos.CENTER
+                }
             }
+        }
+
+        private fun doPause(playButton: Button, timeline: Timeline) {
+            timeline.pause()
+            playButton.graphic = prepareButtonVisual(EButton.play)
+        }
+
+        private fun doPlay(playButton: Button, timeline: Timeline) {
+            timeline.play()
+            playButton.graphic = prepareButtonVisual(EButton.pause)
+        }
+
+        private fun doStop(playButton: Button, timeline: Timeline) {
+            timeline.stop()
+            playButton.graphic = prepareButtonVisual(EButton.play)
         }
 
         private fun prepareControlPanel(visualizer: Visualizer): Node {
@@ -195,9 +226,40 @@ class App(
             panel.spacing = 5.0
             panel.alignment = Pos.CENTER
 
+            val play = Button()
+            play.graphic = prepareButtonVisual(EButton.play)
+            var timeline = Timeline()
+
+            timeline.onFinished = EventHandler{
+                println("finished!")
+                doPause(play, timeline)
+            }
+            play.onAction = EventHandler {
+                if (timeline.status == Animation.Status.STOPPED) {
+                    timeline = Timeline(KeyFrame(
+                            Duration.millis(500.0),
+                            EventHandler {
+                                // This if is here because I don't understand
+                                // how timeline.onFinished works
+                                // that '+1' some lines later is there for same reason. To be fixed...
+                                if (!visualizer.showNextGeneration()) {
+                                    doPause(play, timeline)
+                                }
+                                updateControlCounter(visualizer)
+                            }))
+                    timeline.cycleCount = visualizer.size() - visualizer.getCurrentGen() + 1
+                    doPlay(play, timeline)
+                } else if (timeline.status == Animation.Status.PAUSED) {
+                    doPlay(play, timeline)
+                } else if (timeline.status == Animation.Status.RUNNING) {
+                    doPause(play, timeline)
+                }
+            }
+
             val stop = Button()
             stop.graphic = prepareButtonVisual(EButton.stop)
             stop.onAction = EventHandler {
+                doStop(play, timeline)
                 visualizer.setCurrentGen(0)
                 updateControlCounter(visualizer)
             }
@@ -208,45 +270,15 @@ class App(
             val back = Button()
             back.graphic = prepareButtonVisual(EButton.back)
             back.onAction = EventHandler {
+                doPause(play, timeline)
                 visualizer.showPrevGeneration()
                 updateControlCounter(visualizer)
-            }
-
-            val play = Button()
-            play.graphic = prepareButtonVisual(EButton.play)
-            //var playing_flag: AtomicBoolean
-            //To do: asynch run
-            //This is not working
-            play.onAction = EventHandler {
-                val task = object : Task<Void>() {
-                    @Throws(InterruptedException::class)
-                    public override fun call(): Void? { runBlocking {
-                        while (visualizer.showNextGeneration()) {
-                            updateControlCounter(visualizer)
-                            delay(100)
-                        }}
-
-                        return null
-                    }
-                }
-                task.setOnSucceeded { e ->
-                    println("Yay!")
-                }
-                task.setOnCancelled { event ->
-                    println("Sad :(")
-                    println(event)
-                }
-
-                val thread = Thread(task)
-                thread.setDaemon(true)
-                thread.start()
-
-                println("Not ready!")
             }
 
             val forward = Button()
             forward.graphic = prepareButtonVisual(EButton.forward)
             forward.onAction = EventHandler {
+                doPause(play, timeline)
                 visualizer.showNextGeneration()
                 updateControlCounter(visualizer)
             }
@@ -254,7 +286,6 @@ class App(
             panel.children.addAll(stop, back, play, forward, label_counter)
             return panel
         }
-
         private val parametersHorizontalSpacing = 15.0
         private val parametersVerticalSpacing = 5.0
 
