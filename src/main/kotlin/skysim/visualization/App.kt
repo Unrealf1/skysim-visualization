@@ -2,7 +2,6 @@ package skysim.visualization
 
 import javafx.animation.Animation
 import javafx.application.Application
-import javafx.application.Platform
 import javafx.beans.property.SimpleBooleanProperty
 import javafx.event.EventHandler
 import javafx.stage.Stage
@@ -21,15 +20,10 @@ import javafx.scene.control.*
 import javafx.scene.input.ScrollEvent
 import javafx.scene.layout.VBox
 import javafx.stage.Modality
-import kotlinx.atomicfu.AtomicBoolean
 import kotlinx.coroutines.*
-import javafx.concurrent.Task
-import kotlinx.coroutines.Runnable
-import java.time.Clock
-import java.util.logging.Handler
-import kotlin.reflect.jvm.internal.impl.metadata.ProtoBuf
 import javafx.animation.KeyFrame
 import javafx.animation.Timeline
+import javafx.geometry.Insets
 import javafx.util.Duration
 
 
@@ -394,6 +388,12 @@ class App(
             root.spacing = 10.0
             root.maxHeight = 50.0
             root.alignment = Pos.TOP_CENTER
+            root.background = Background(
+                    BackgroundFill(
+                            Color.TRANSPARENT,
+                            CornerRadii(0.0),
+                            Insets(0.0)))
+
 
             val scene = SubScene(
                     root,
@@ -402,7 +402,7 @@ class App(
                     false,
                     SceneAntialiasing.DISABLED
             )
-            scene.fill = Color.AQUAMARINE
+            scene.fill = Color.WHEAT
 
             root.children.add(prepareControlPanel(visualizer))
 
@@ -461,7 +461,7 @@ class App(
             val seedPhotons = "seed-photons"
             val dynamicPlot = "dynamic-plot"
         }
-        private val version = "0.1.5-Alpha"
+        private val version = "0.2.0"
 
         private val helpMessage = "\tVisualizer version: " + version + "\n" +
                 "\tSimulator version: " + skysim.sky.version + "\n" +
