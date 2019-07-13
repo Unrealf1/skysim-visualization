@@ -2,15 +2,12 @@ package skysim.visualization
 
 import javafx.animation.Animation
 import javafx.application.Application
-import javafx.beans.property.SimpleBooleanProperty
 import javafx.event.EventHandler
 import javafx.stage.Stage
 import javafx.scene.*
 import javafx.scene.paint.*
 import javafx.scene.shape.*
 import javafx.scene.transform.Rotate
-import javafx.beans.property.SimpleDoubleProperty
-import javafx.beans.property.SimpleStringProperty
 import javafx.geometry.Point2D
 import javafx.scene.input.MouseEvent
 import javafx.scene.layout.*
@@ -23,9 +20,51 @@ import javafx.stage.Modality
 import kotlinx.coroutines.*
 import javafx.animation.KeyFrame
 import javafx.animation.Timeline
+import javafx.beans.property.*
 import javafx.geometry.Insets
 import javafx.util.Duration
 
+
+class MyDoubleProperty(val getter: ()->Double): ReadOnlyDoublePropertyBase() {
+    override fun get(): Double {
+        return getter()
+    }
+
+    private val bean: Any = ""
+
+    override fun getBean(): Any {
+        return bean
+    }
+
+    override fun getName(): String {
+        return this.toString()
+    }
+}
+
+/*class AnDoubleProperty: DoubleExpression(){
+    private var helper: ExpressionHelper<Number>
+
+
+    override fun addListener(var1: InvalidationListener) {
+        this.helper = ExpressionHelper.addListener(this.helper, this, var1)
+    }
+
+    override fun removeListener(var1: InvalidationListener) {
+        this.helper = ExpressionHelper.removeListener(this.helper, var1)
+    }
+
+    override fun addListener(var1: ChangeListener<in Number>) {
+        this.helper = ExpressionHelper.addListener(this.helper, this, var1)
+    }
+
+    override fun removeListener(var1: ChangeListener<in Number>) {
+        this.helper = ExpressionHelper.removeListener(this.helper, var1)
+    }
+
+    override fun get(): Double {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+}*/
 
 class SimulationParameters(
         var cell_length: SimpleStringProperty = SimpleStringProperty("0.0"),
@@ -44,12 +83,17 @@ class SimulationParameters(
 class App(
         private val windowWidth: SimpleDoubleProperty = SimpleDoubleProperty(1200.0),
         private val windowHeight: SimpleDoubleProperty = SimpleDoubleProperty(900.0)): Application() {
-    private val visualizationWidth = SimpleDoubleProperty(windowWidth.get() * 0.75)
+    private val visualizationWidth = MyDoubleProperty{
+        windowWidth.get() * 0.75
+    }
     private val visualizationHeight = SimpleDoubleProperty(windowHeight.get())
-    private val uiWidth = SimpleDoubleProperty(windowWidth.get() - visualizationWidth.get())
+    private val uiWidth = MyDoubleProperty{
+        windowWidth.get() - visualizationWidth.get()
+    }
     private val uiHeight = SimpleDoubleProperty(windowHeight.get())
 
     class MouseController {
+
         // Rotation with mouse from
         // https://www.genuinecoder.com/javafx-3d-tutorial-object-transform-rotation-with-mouse/
         //
@@ -406,20 +450,29 @@ class App(
 
     val simulationParameters = SimulationParameters()
 
-    private fun bindProperties() {
+    private fun bindProperties(mainStage: Stage) {
+
+        windowWidth.bind(mainStage.widthProperty())
+        windowHeight.bind(mainStage.heightProperty())
+
         visualizationHeight.bind(windowHeight)
 
         uiHeight.bind(windowHeight)
+
+
     }
 
     override fun start(mainStage: Stage) {
+        mainStage.minHeight = 510.0
+        mainStage.minWidth = 1000.0
+
         val root = GridPane()
         val scene = Scene(root, windowWidth.get(), windowHeight.get(), false)
         scene.fill = Color.BLACK
 
-        windowWidth.bind(mainStage.widthProperty())
-        windowHeight.bind(mainStage.heightProperty())
-        bindProperties()
+        // For some reason if I call this function here,
+        // No graphics and UI are display, besides background colors
+        // bindProperties(mainStage)
 
         // Configure layout
         root.isGridLinesVisible = false
@@ -430,6 +483,8 @@ class App(
                 simulationParameters.cloud_size.get().toDouble())
 
         val ui = uiPreparator.prepareUI(visualization, mainStage)
+
+        bindProperties(mainStage)
 
         root.add(ui, 1, 0)
         root.add(visualization.scene, 0, 0)
