@@ -1,6 +1,5 @@
 package skysim.visualization
 
-import com.sun.javafx.binding.ExpressionHelper
 import javafx.animation.Animation
 import javafx.application.Application
 import javafx.event.EventHandler
@@ -24,25 +23,11 @@ import javafx.animation.Timeline
 import javafx.beans.binding.DoubleBinding
 import javafx.beans.property.*
 import javafx.beans.value.ObservableDoubleValue
+import javafx.collections.FXCollections
 import javafx.geometry.Insets
 import javafx.util.Duration
+import kotlin.math.max
 
-
-class UIW(val windowWidth: ObservableDoubleValue, val visualizationWidth: ObservableDoubleValue): DoubleBinding() {
-    init{
-        bind(windowWidth, visualizationWidth)
-    }
-
-    override fun computeValue(): Double  = windowWidth.doubleValue() - visualizationWidth.doubleValue()
-}
-
-class VSW(val windowWidth: ObservableDoubleValue): DoubleBinding() {
-    init{
-        bind(windowWidth)
-    }
-
-    override fun computeValue(): Double  = windowWidth.get() * 0.75
-}
 
 class SimulationParameters(
         var cell_length: SimpleStringProperty = SimpleStringProperty("0.0"),
@@ -61,12 +46,33 @@ class App(
         private val windowWidth: SimpleDoubleProperty = SimpleDoubleProperty(1200.0),
         private val windowHeight: SimpleDoubleProperty = SimpleDoubleProperty(900.0)): Application() {
 
+    class UIWidth(
+            private val windowWidth: ObservableDoubleValue,
+            private val visualizationWidth: ObservableDoubleValue): DoubleBinding() {
+        init{
+            bind(windowWidth, visualizationWidth)
+        }
 
-    private val visualizationWidth = VSW(windowWidth)
+        override fun computeValue(): Double  = windowWidth.doubleValue() - visualizationWidth.doubleValue()
+    }
+
+    class VSWidth(private val windowWidth: ObservableDoubleValue): DoubleBinding() {
+        init{
+            bind(windowWidth)
+        }
+
+        private val maxUIWidth = 300.0
+
+        override fun computeValue(): Double {
+            return max(windowWidth.get() * 0.75, windowWidth.get() - maxUIWidth)
+        }
+    }
+
+    private val visualizationWidth = VSWidth(windowWidth)
 
     private val visualizationHeight = SimpleDoubleProperty(windowHeight.get())
 
-    private val uiWidth = UIW(windowWidth, visualizationWidth)
+    private val uiWidth = UIWidth(windowWidth, visualizationWidth)
 
     private val uiHeight = SimpleDoubleProperty(windowHeight.get())
 
@@ -122,6 +128,8 @@ class App(
             return camera
         }
 
+        var boxField: Box = Box()
+
         fun prepareVisualization(fieldSize: Double): Visualizer {
             val root = Group()
             val scene = SubScene(
@@ -136,7 +144,7 @@ class App(
 
             val fieldGroup = Group()
             root.children.add(fieldGroup)
-            val boxField = Box(fieldSize, fieldSize, fieldSize)
+            boxField = Box(fieldSize, fieldSize, fieldSize)
             boxField.drawMode = DrawMode.LINE
             fieldGroup.children.add(boxField)
 
@@ -330,23 +338,116 @@ class App(
             return uiParameters
         }
 
+        private fun prepareHelpParameter(name: String, type: String, description: String): Node {
+            return Label("$name(this is $type):\n$description")
+        }
+
+        private fun prepareHelp(): Node{
+            val root = VBox()
+
+            root.alignment = Pos.TOP_CENTER
+
+            root.children.add(prepareHelpParameter(
+                    "cell-length",
+                    "NUMBER",
+                    "set the length of acceleration cell"
+            ))
+
+            root.children.add(prepareHelpParameter(
+                    "cloud-size",
+                    "NUMBER",
+                    "set the cloud size"
+            ))
+
+            root.children.add(prepareHelpParameter(
+                    "dynamic-plot",
+                    "BOOL",
+                    "start server with dynamic plot"
+            ))
+
+            root.children.add(prepareHelpParameter(
+                    "field-magnitude",
+                    "NUMBER",
+                    "set the cloud size"
+            ))
+
+            root.children.add(prepareHelpParameter(
+                    "free-path",
+                    "NUMBER",
+                    "set the photon free mean path"
+            ))
+
+            root.children.add(prepareHelpParameter(
+                    "gain",
+                    "NUMBER",
+                    "set the local coefficient of gamma"
+            ))
+
+            root.children.add(prepareHelpParameter(
+                    "particle-limit",
+                    "NUMBER",
+                    "set the upper limit of number of particle"
+            ))
+
+            root.children.add(prepareHelpParameter(
+                    "output",
+                    "FILENAME",
+                    "print simulation result in the file with"
+            ))
+
+            root.children.add(prepareHelpParameter(
+                    "seed",
+                    "NUMBER",
+                    "set the random generator seed"
+            ))
+
+            root.children.add(prepareHelpParameter(
+                    "save-plot",
+                    "FILENAME",
+                    "save graph of simulation result in the\n" +
+                            "html-file with given name"
+            ))
+
+            root.children.add(prepareHelpParameter(
+                    "seed-photons",
+                    "FILENAME",
+                    "set the path to file contains list of\n" +
+                            "seed photons in next format:\n" +
+                            "POSITION_X POSITION_Y POSITION_Z\n" +
+                            "DIRECTION_X DIRECTION_Y DIRECTION_Z\n" +
+                            "ENERGY NUMBER\n" +
+                            "POSITION_X POSITION_Y POSITION_Z\n" +
+                            "DIRECTION_X DIRECTION_Y DIRECTION_Z\n" +
+                            "ENERGY NUMBER\n" +
+                            "...\n" +
+                            "by default using:\n" +
+                            "0.0 0.0 cloud-size/2 0.0 0.0 -1.0 1.0 1\n"
+            ))
+
+            return root
+        }
+
         private fun prepareHelpButton(): Button {
             val helpButton = Button("Help&Version")
             helpButton.onAction = EventHandler{
                 val popupWindow = Stage()
                 popupWindow.initModality(Modality.APPLICATION_MODAL)
                 popupWindow.title = "Help and Version"
+                popupWindow.isResizable = false
 
-                val label = Label(helpMessage)
+                val content = prepareHelp()
 
                 val closeHelpButton = Button("Close")
                 closeHelpButton.setOnAction { popupWindow.close() }
 
+                val versionMessage = Label(versionMessage)
+
                 val layout = VBox(10.0)
-                layout.children.addAll(label, closeHelpButton)
+                layout.alignment = Pos.TOP_CENTER
+                layout.children.addAll(versionMessage, content, closeHelpButton)
                 layout.alignment = Pos.CENTER
 
-                val popupScene = Scene(layout, 600.0, 500.0)
+                val popupScene = Scene(layout, 400.0, 700.0)
 
                 popupWindow.scene = popupScene
                 popupWindow.showAndWait()
@@ -374,7 +475,6 @@ class App(
         }
 
         private fun prepareFullScreenButton(mainStage: Stage): Button {
-            //TODO : resize things on transition (not only full screen, but _any_ resize)
             val button = Button("Fullscreen")
             button.onAction = EventHandler {
                 mainStage.isFullScreen = !mainStage.isFullScreen
@@ -385,6 +485,13 @@ class App(
                 }
             }
             return button
+        }
+
+        private fun prepareCubeToggleBox(): CheckBox{
+            val checkBox = CheckBox("Show Cube")
+            checkBox.isSelected = true
+            visualizerPreparator.boxField.visibleProperty().bind(checkBox.selectedProperty())
+            return checkBox
         }
 
         fun prepareUI(visualizer: Visualizer, mainStage: Stage): Node {
@@ -416,6 +523,8 @@ class App(
             val uiParameters = prepareUIParameters()
             root.children.add(uiParameters)
 
+            root.children.add(prepareCubeToggleBox())
+
             root.children.add(prepareHelpButton())
 
             root.children.add(prepareStartButton(visualizer))
@@ -439,7 +548,7 @@ class App(
     }
 
     override fun start(mainStage: Stage) {
-        mainStage.minHeight = 510.0
+        mainStage.minHeight = 530.0
         mainStage.minWidth = 1000.0
 
         val root = GridPane()
@@ -479,42 +588,14 @@ class App(
             val seedPhotons = "seed-photons"
             val dynamicPlot = "dynamic-plot"
         }
-        private val version = "0.2.0"
+        private val version = "0.3.0"
 
-        private val helpMessage = "\tVisualizer version: " + version + "\n" +
-                "\tSimulator version: " + skysim.sky.version + "\n" +
-                "usage: skysim\n" +
-                "    --cell-length <NUMBER>       set the length of acceleration cell\n" +
-                "                                 (influence on birth point of new photon)\n" +
-                "    --cloud-size <NUMBER>        set the cloud size\n" +
-                "    --dynamic-plot               start server with dynamic plot\n" +
-                "    --field-magnitude <NUMBER>   set the field magnitude\n" +
-                "    --free-path <NUMBER>         set the photon free mean path\n" +
-                " -g,--gain <NUMBER>              set the local coefficient of gamma\n" +
-                "                                 multiplication\n" +
-                " -h,--help                       print this message and exit\n" +
-                " -l,--particle-limit <NUMBER>    set the upper limit of number of particle\n" +
-                " -o,--output <FILENAME>          print simulation result in the file with\n" +
-                "                                 given name\n" +
-                " -s,--seed <NUMBER>              set the random generator seed\n" +
-                "    --save-plot <FILENAME>       save graph of simulation result in the\n" +
-                "                                 html-file with given name\n" +
-                "    --seed-photons <FILENAME>    set the path to file contains list of\n" +
-                "                                 seed photons in next format:\n" +
-                "                                 POSITION_X POSITION_Y POSITION_Z\n" +
-                "                                 DIRECTION_X DIRECTION_Y DIRECTION_Z\n" +
-                "                                 ENERGY NUMBER\n" +
-                "                                 POSITION_X POSITION_Y POSITION_Z\n" +
-                "                                 DIRECTION_X DIRECTION_Y DIRECTION_Z\n" +
-                "                                 ENERGY NUMBER\n" +
-                "                                 ...\n" +
-                "                                 by default using:\n" +
-                "                                 0.0 0.0 cloud-size/2 0.0 0.0 -1.0 1.0 1\n" +
-                " -v,--version                    print information about version and exit\n"
+        private val versionMessage = "\tVisualizer version: " + version + "\n" +
+                "\tSimulator version: " + skysim.sky.version + "\n"
 
         val greeting: String
             get() {
-                return "Hello world."
+                return versionMessage
             }
     }
 }

@@ -10,7 +10,7 @@ class Generation(
         var averageHeight: Double = 0.0)
 
 class Visualizer(val scene: SubScene, val  photonGroup: Group) {
-    private val generations = arrayListOf<Generation>()
+    private val generations = arrayListOf<Generation>(Generation())
     private val photonRadius = 1.5
     private var current_gen = -1
 
@@ -19,7 +19,7 @@ class Visualizer(val scene: SubScene, val  photonGroup: Group) {
     }
 
     fun size(): Int {
-        return generations.size
+        return generations.size - 1
     }
 
     fun clear() {
@@ -37,7 +37,7 @@ class Visualizer(val scene: SubScene, val  photonGroup: Group) {
     }
 
     fun setCurrentGen(value: Int): Boolean {
-        if (value < 0 || value >= generations.size) {
+        if (value < 0 || value >= size()) {
             return false
         }
         current_gen = value
@@ -47,7 +47,7 @@ class Visualizer(val scene: SubScene, val  photonGroup: Group) {
 
     fun showNextGeneration(): Boolean{
         current_gen++
-        if (current_gen >= generations.size) {
+        if (current_gen >= size()) {
             current_gen--
             return false
         }
