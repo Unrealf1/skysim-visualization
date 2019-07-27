@@ -30,11 +30,11 @@ import kotlin.math.max
 
 
 class SimulationParameters(
-        var cell_length: SimpleStringProperty = SimpleStringProperty("0.0"),
+        var cell_length: SimpleStringProperty = SimpleStringProperty("100.0"),
         var cloud_size: SimpleStringProperty = SimpleStringProperty("1000.0"),
         var dynamic_plot: SimpleBooleanProperty = SimpleBooleanProperty(false),
-        var field_magnitude: SimpleStringProperty = SimpleStringProperty("0.0"),
-        var free_path: SimpleStringProperty = SimpleStringProperty("0.0"),
+        var field_magnitude: SimpleStringProperty = SimpleStringProperty("0.2"),
+        var free_path: SimpleStringProperty = SimpleStringProperty("100.0"),
         var gain: SimpleStringProperty = SimpleStringProperty("0.0"),
         var particle_limit: SimpleStringProperty = SimpleStringProperty("15000"),
         var output: SimpleStringProperty = SimpleStringProperty(""),
@@ -45,6 +45,14 @@ class SimulationParameters(
 class App(
         private val windowWidth: SimpleDoubleProperty = SimpleDoubleProperty(1200.0),
         private val windowHeight: SimpleDoubleProperty = SimpleDoubleProperty(900.0)): Application() {
+
+    class StringToDoubleProperty(private val stringProperty: StringProperty): DoubleBinding() {
+        init {
+            bind(stringProperty)
+        }
+
+        override fun computeValue(): Double = stringProperty.value.toDouble()
+    }
 
     class UIWidth(
             private val windowWidth: ObservableDoubleValue,
@@ -118,19 +126,19 @@ class App(
     private val mouseController = MouseController()
 
     inner class VisualizerPreparator {
-        private fun prepareVisualizationCamera(fieldSize: Double): Camera {
-            val camera = PerspectiveCamera(true)
+        val camera = PerspectiveCamera(true)
+        private fun prepareVisualizationCamera(): Camera {
             camera.translateXProperty().set(0.0)
             camera.translateYProperty().set(0.0)
-            camera.translateZProperty().set(-fieldSize * 3.0)
+            camera.translateZProperty().set(simulationParameters.cloud_size.value.toDouble() * -3.0)
             camera.farClip = 100000.0
             camera.nearClip = 0.0
             return camera
         }
 
-        var boxField: Box = Box()
+        val boxField: Box = Box()
 
-        fun prepareVisualization(fieldSize: Double): Visualizer {
+        fun prepareVisualization(): Visualizer {
             val root = Group()
             val scene = SubScene(
                     root,
@@ -144,14 +152,17 @@ class App(
 
             val fieldGroup = Group()
             root.children.add(fieldGroup)
-            boxField = Box(fieldSize, fieldSize, fieldSize)
+            val fieldSize = simulationParameters.cloud_size.value.toDouble()
+            boxField.depthProperty().set(fieldSize)
+            boxField.heightProperty().set(fieldSize)
+            boxField.widthProperty().set(fieldSize)
             boxField.drawMode = DrawMode.LINE
             fieldGroup.children.add(boxField)
 
             val photonsGroup = Group()
             fieldGroup.children.add(photonsGroup)
 
-            scene.camera = prepareVisualizationCamera(fieldSize)
+            scene.camera = prepareVisualizationCamera()
 
             mouseController.initMouseControl(fieldGroup, scene)
             val scroll_handler = { event: ScrollEvent ->
@@ -169,6 +180,9 @@ class App(
     }
 
     inner class UIPreparator {
+        private val playButton = Button()
+        private var playTimeline = Timeline()
+
         val controlCounter = SimpleStringProperty("0 / 0")
 
         fun updateControlCounter(visualizer: Visualizer) {
@@ -211,18 +225,18 @@ class App(
             }
         }
 
-        private fun doPause(playButton: Button, timeline: Timeline) {
-            timeline.pause()
+        private fun doPause() {
+            playTimeline.pause()
             playButton.graphic = prepareButtonVisual(EButton.play)
         }
 
-        private fun doPlay(playButton: Button, timeline: Timeline) {
-            timeline.play()
+        private fun doPlay() {
+            playTimeline.play()
             playButton.graphic = prepareButtonVisual(EButton.pause)
         }
 
-        private fun doStop(playButton: Button, timeline: Timeline) {
-            timeline.stop()
+        private fun doStop() {
+            playTimeline.stop()
             playButton.graphic = prepareButtonVisual(EButton.play)
         }
 
@@ -231,40 +245,39 @@ class App(
             panel.spacing = 5.0
             panel.alignment = Pos.CENTER
 
-            val play = Button()
+            val play = playButton
             play.graphic = prepareButtonVisual(EButton.play)
-            var timeline = Timeline()
 
-            timeline.onFinished = EventHandler{
-                println("finished!")
-                doPause(play, timeline)
+            playTimeline.onFinished = EventHandler{
+                println("playTimeline finished!")
+                doPause()
             }
             play.onAction = EventHandler {
-                if (timeline.status == Animation.Status.STOPPED) {
-                    timeline = Timeline(KeyFrame(
+                if (playTimeline.status == Animation.Status.STOPPED) {
+                    playTimeline = Timeline(KeyFrame(
                             Duration.millis(500.0),
                             EventHandler {
                                 // This if is here because I don't understand
                                 // how timeline.onFinished works
                                 // that '+1' some lines later is there for same reason. To be fixed...
                                 if (!visualizer.showNextGeneration()) {
-                                    doPause(play, timeline)
+                                    doPause()
                                 }
                                 updateControlCounter(visualizer)
                             }))
-                    timeline.cycleCount = visualizer.size() - visualizer.getCurrentGen() + 1
-                    doPlay(play, timeline)
-                } else if (timeline.status == Animation.Status.PAUSED) {
-                    doPlay(play, timeline)
-                } else if (timeline.status == Animation.Status.RUNNING) {
-                    doPause(play, timeline)
+                    playTimeline.cycleCount = visualizer.size() - visualizer.getCurrentGen() + 1
+                    doPlay()
+                } else if (playTimeline.status == Animation.Status.PAUSED) {
+                    doPlay()
+                } else if (playTimeline.status == Animation.Status.RUNNING) {
+                    doPause()
                 }
             }
 
             val stop = Button()
             stop.graphic = prepareButtonVisual(EButton.stop)
             stop.onAction = EventHandler {
-                doStop(play, timeline)
+                doStop()
                 visualizer.setCurrentGen(0)
                 updateControlCounter(visualizer)
             }
@@ -275,7 +288,7 @@ class App(
             val back = Button()
             back.graphic = prepareButtonVisual(EButton.back)
             back.onAction = EventHandler {
-                doPause(play, timeline)
+                doPause()
                 visualizer.showPrevGeneration()
                 updateControlCounter(visualizer)
             }
@@ -283,7 +296,7 @@ class App(
             val forward = Button()
             forward.graphic = prepareButtonVisual(EButton.forward)
             forward.onAction = EventHandler {
-                doPause(play, timeline)
+                doPause()
                 visualizer.showNextGeneration()
                 updateControlCounter(visualizer)
             }
@@ -458,7 +471,21 @@ class App(
         private fun prepareStartButton(visualizer: Visualizer): Button {
             val startButton = Button("Start simulation")
             startButton.onAction = EventHandler {
+                doStop()
                 visualizer.clear()
+
+                // Change cube, if necessary
+                val fieldSize = simulationParameters.cloud_size.value.toDouble()
+                visualizerPreparator.boxField.depthProperty().set(fieldSize)
+                visualizerPreparator.boxField.heightProperty().set(fieldSize)
+                visualizerPreparator.boxField.widthProperty().set(fieldSize)
+
+                // Move camera to position near possibly changed cube
+                visualizerPreparator
+                        .camera
+                        .translateZProperty()
+                        .set(simulationParameters.cloud_size.value.toDouble() * -3.0)
+
                 runBlocking {
                     val channel = launchSkysim(simulationParameters)
                     var current_generation: Generation
@@ -561,8 +588,7 @@ class App(
         root.hgap = 0.0
         root.vgap = 0.0
 
-        val visualization = visualizerPreparator.prepareVisualization(
-                simulationParameters.cloud_size.get().toDouble())
+        val visualization = visualizerPreparator.prepareVisualization()
 
         val ui = uiPreparator.prepareUI(visualization, mainStage)
 

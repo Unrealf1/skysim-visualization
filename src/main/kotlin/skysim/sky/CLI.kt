@@ -193,10 +193,10 @@ fun getAtmosphere(cmd: CommandLine, rng :RandomGenerator): SimpleAtmosphere {
     try {
         when {
             cmd.hasOption("gain") -> init.multiplication = cmd.getOptionValue("gain").toDouble()
-            cmd.hasOption("free-path") -> init.photonFreePath = cmd.getOptionValue("gain").toDouble()
-            cmd.hasOption("cell-length") -> init.cellLength = cmd.getOptionValue("gain").toDouble()
-            cmd.hasOption("cloud-size") -> init.cloudSize = cmd.getOptionValue("gain").toDouble()
-            cmd.hasOption("field-magnitude") -> init.fieldMagnitude = cmd.getOptionValue("gain").toDouble()
+            cmd.hasOption("free-path") -> init.photonFreePath = cmd.getOptionValue("free-path").toDouble()
+            cmd.hasOption("cell-length") -> init.cellLength = cmd.getOptionValue("cell-length").toDouble()
+            cmd.hasOption("cloud-size") -> init.cloudSize = cmd.getOptionValue("cloud-size").toDouble()
+            cmd.hasOption("field-magnitude") -> init.fieldMagnitude = cmd.getOptionValue("field-magnitude").toDouble()
         }
     } catch (exp: Exception) {
         parseError(exp)
