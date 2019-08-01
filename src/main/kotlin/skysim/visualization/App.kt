@@ -37,7 +37,7 @@ class SimulationParameters(
         var field_magnitude: SimpleStringProperty = SimpleStringProperty("0.2"),
         var free_path: SimpleStringProperty = SimpleStringProperty("100.0"),
         var gain: SimpleStringProperty = SimpleStringProperty("0.0"),
-        var particle_limit: SimpleStringProperty = SimpleStringProperty("15000"),
+        var particle_limit: SimpleStringProperty = SimpleStringProperty("10000"),
         var output: SimpleStringProperty = SimpleStringProperty(""),
         var seed: SimpleStringProperty = SimpleStringProperty(""),
         var save_plot: SimpleStringProperty = SimpleStringProperty("./last_simulation"),
@@ -341,10 +341,14 @@ class App(
 
         private fun prepareParameterLine(name: String, parameter: SimpleStringProperty): Node {
             val textfield = TextField(parameter.get())
+            textfield.alignment = Pos.TOP_RIGHT
             parameter.bind(textfield.textProperty())
+
             val label = Label(name)
+            label.alignment = Pos.TOP_LEFT
+
             val node = HBox()
-            node.alignment = Pos.TOP_CENTER
+            node.alignment = Pos.CENTER
             node.spacing = parametersHorizontalSpacing
             node.children.addAll(label, textfield)
             return node
