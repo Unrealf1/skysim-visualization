@@ -685,7 +685,7 @@ class App(
             val seedPhotons = "seed-photons"
             val dynamicPlot = "dynamic-plot"
         }
-        private const val version = "0.5.0"
+        private const val version = "1.0.0"
 
         private val versionMessage = "\tVisualizer version: " + version + "\n" +
                 "\tSimulator version: " + skysim.sky.version + "\n"
