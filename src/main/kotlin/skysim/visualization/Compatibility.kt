@@ -31,7 +31,6 @@ fun composeArgs(param: SimulationParameters): ArrayList<String> {
     //args.add("--gain")
     //args.add(param.gain.get())
 
-
     args.add("--particle-limit")
     args.add(param.particle_limit.get())
 

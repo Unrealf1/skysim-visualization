@@ -46,14 +46,10 @@ class App(
         private val windowWidth: SimpleDoubleProperty = SimpleDoubleProperty(1200.0),
         private val windowHeight: SimpleDoubleProperty = SimpleDoubleProperty(900.0)): Application() {
 
-    class StringToDoubleProperty(private val stringProperty: StringProperty): DoubleBinding() {
-        init {
-            bind(stringProperty)
-        }
-
-        override fun computeValue(): Double = stringProperty.value.toDouble()
-    }
-
+    /**
+     * Here and hereinafter UI stands for "User interface"
+     * and by that I mean buttons/labels etc
+     */
     class UIWidth(
             private val windowWidth: ObservableDoubleValue,
             private val visualizationWidth: ObservableDoubleValue): DoubleBinding() {
@@ -64,6 +60,10 @@ class App(
         override fun computeValue(): Double  = windowWidth.doubleValue() - visualizationWidth.doubleValue()
     }
 
+    /**
+     * Here and hereinafter VS stands for "Visualization"
+     * and by that I mean part of the window with interactive model
+     */
     class VSWidth(private val windowWidth: ObservableDoubleValue): DoubleBinding() {
         init{
             bind(windowWidth)
@@ -84,6 +84,9 @@ class App(
 
     private val uiHeight = SimpleDoubleProperty(windowHeight.get())
 
+    /**
+     * This class supports rotation of an object by mouse
+     */
     class MouseController {
 
         // Rotation with mouse from
@@ -125,6 +128,11 @@ class App(
     }
     private val mouseController = MouseController()
 
+    /**
+     * This class produces visualization via function "prepareVisualization"
+     * and provides some control over visualization after
+     * (camera for example)
+     */
     inner class VisualizerPreparator {
         val camera = PerspectiveCamera(true)
         private fun prepareVisualizationCamera(): Camera {
@@ -132,7 +140,7 @@ class App(
             camera.translateYProperty().set(0.0)
             camera.translateZProperty().set(simulationParameters.cloud_size.value.toDouble() * -3.0)
             camera.farClip = 100000.0
-            camera.nearClip = 0.0
+            camera.nearClip = 1.0
             return camera
         }
 
@@ -179,16 +187,35 @@ class App(
         stop, back, play, forward, pause
     }
 
+    /**
+     * This class produces UI via function "prepareUI"
+     * and provides some control over UI after
+     * ('updateControlCounter' for example)
+     */
     inner class UIPreparator {
         private val playButton = Button()
+
+        /**
+         * This timeline is in charge of playing back generations,
+         * when 'play' button is pressed
+         */
         private var playTimeline = Timeline()
 
+        /**
+         * Here and hereinafter controlCounter is refering to
+         * label at the top of the UI which display the number
+         * of generation on the screen
+         */
         val controlCounter = SimpleStringProperty("0 / 0")
+
 
         fun updateControlCounter(visualizer: Visualizer) {
             controlCounter.set("${visualizer.getCurrentGen() + 1} / ${visualizer.size()}")
         }
 
+        /**
+         * This function creates a symmetrical arrow
+         */
         private fun makeArrow(handleUp: Point2D, middleUp: Point2D, point: Point2D): Polygon {
             return Polygon(
                     handleUp.x, handleUp.y,
@@ -240,6 +267,10 @@ class App(
             playButton.graphic = prepareButtonVisual(EButton.play)
         }
 
+        /**
+         * Control panel is set of buttons on top of the UI
+         * (play, stop, next generation, previous generation, etc)
+         */
         private fun prepareControlPanel(visualizer: Visualizer): Node {
             val panel = HBox()
             panel.spacing = 5.0
@@ -318,6 +349,10 @@ class App(
             return node
         }
 
+        /**
+         * 'UIParameters' is part of the UI, containing simulation parameters
+         * (gain, field-size, etc)
+         */
         private fun prepareUIParameters(): Node {
             val uiParameters = VBox()
             uiParameters.spacing = parametersVerticalSpacing
@@ -565,6 +600,9 @@ class App(
 
     val simulationParameters = SimulationParameters()
 
+    /**
+     * Initial bindings
+     */
     private fun bindProperties(mainStage: Stage) {
         windowWidth.bind(mainStage.widthProperty())
         windowHeight.bind(mainStage.heightProperty())
@@ -583,7 +621,6 @@ class App(
         scene.fill = Color.BLACK
         bindProperties(mainStage)
 
-        // Configure layout
         root.isGridLinesVisible = false
         root.hgap = 0.0
         root.vgap = 0.0
@@ -595,7 +632,7 @@ class App(
         root.add(ui, 1, 0)
         root.add(visualization.scene, 0, 0)
 
-        mainStage.title = "skysim"
+        mainStage.title = "Skysim"
         mainStage.scene = scene
         mainStage.show()
     }
@@ -614,7 +651,7 @@ class App(
             val seedPhotons = "seed-photons"
             val dynamicPlot = "dynamic-plot"
         }
-        private val version = "0.3.0"
+        private const val version = "0.5.0"
 
         private val versionMessage = "\tVisualizer version: " + version + "\n" +
                 "\tSimulator version: " + skysim.sky.version + "\n"

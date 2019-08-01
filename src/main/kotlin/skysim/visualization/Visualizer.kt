@@ -9,6 +9,12 @@ class Generation(
         val photons: ArrayList<Point3D> = arrayListOf<Point3D>(),
         var averageHeight: Double = 0.0)
 
+/**
+ * This class contains all generated generations, and is able
+ * to switch between them.
+ * This class is in charge of photons
+ * appearing on the screen
+ */
 class Visualizer(val scene: SubScene, val  photonGroup: Group) {
     private val generations = arrayListOf<Generation>(Generation())
     private val photonRadius = 1.5
