@@ -1,4 +1,4 @@
-package skysim.visualization
+package ru.mipt.npm.sky.visualization
 
 import javafx.geometry.Point3D
 import javafx.scene.Group
@@ -6,8 +6,9 @@ import javafx.scene.SubScene
 import javafx.scene.shape.Sphere
 
 class Generation(
-        val photons: ArrayList<Point3D> = arrayListOf<Point3D>(),
-        var averageHeight: Double = 0.0)
+    val photons: List<Point3D>,
+    var averageHeight: Double = 0.0
+)
 
 /**
  * This class contains all generated generations, and is able
@@ -15,13 +16,13 @@ class Generation(
  * This class is in charge of photons
  * appearing on the screen
  */
-class Visualizer(val scene: SubScene, val  photonGroup: Group) {
-    private val generations = arrayListOf<Generation>(Generation())
+class Visualizer(val scene: SubScene, val photonGroup: Group) {
+    private val generations = ArrayList<Generation>()
     private val photonRadius = 1.5
-    private var current_gen = -1
+    private var currentGen = -1
 
     fun getCurrentGen(): Int {
-        return current_gen
+        return currentGen
     }
 
     fun size(): Int {
@@ -29,7 +30,7 @@ class Visualizer(val scene: SubScene, val  photonGroup: Group) {
     }
 
     fun clear() {
-        current_gen = -1
+        currentGen = -1
         generations.clear()
         photonGroup.children.clear()
     }
@@ -46,15 +47,15 @@ class Visualizer(val scene: SubScene, val  photonGroup: Group) {
         if (value < 0 || value >= size()) {
             return false
         }
-        current_gen = value
+        currentGen = value
         showGeneration()
         return true
     }
 
-    fun showNextGeneration(): Boolean{
-        current_gen++
-        if (current_gen >= size()) {
-            current_gen--
+    fun showNextGeneration(): Boolean {
+        currentGen++
+        if (currentGen >= size()) {
+            currentGen--
             return false
         }
         showGeneration()
@@ -62,9 +63,9 @@ class Visualizer(val scene: SubScene, val  photonGroup: Group) {
     }
 
     fun showPrevGeneration(): Boolean {
-        current_gen--
-        if (current_gen < 0) {
-            current_gen++
+        currentGen--
+        if (currentGen < 0) {
+            currentGen++
             return false
         }
         showGeneration()
@@ -73,13 +74,13 @@ class Visualizer(val scene: SubScene, val  photonGroup: Group) {
 
     private fun showGeneration() {
         clearPhotonGroup()
-        val gen = generations[current_gen]
+        val gen = generations[currentGen]
         for (photon in gen.photons) {
-            val visual_photon = Sphere(photonRadius)
-            visual_photon.translateXProperty().set(photon.x)
-            visual_photon.translateYProperty().set(photon.y)
-            visual_photon.translateZProperty().set(photon.z)
-            photonGroup.children.add(visual_photon)
+            val visualPhoton = Sphere(photonRadius)
+            visualPhoton.translateXProperty().set(photon.x)
+            visualPhoton.translateYProperty().set(photon.y)
+            visualPhoton.translateZProperty().set(photon.z)
+            photonGroup.children.add(visualPhoton)
         }
     }
 }

@@ -1,17 +1,13 @@
 package ru.mipt.npm.sky
 
 import org.apache.commons.cli.CommandLine
-import org.apache.commons.cli.DefaultParser
 import org.apache.commons.cli.Option
 import org.apache.commons.cli.Options
 import org.apache.commons.math3.geometry.euclidean.threed.Vector3D
 import org.apache.commons.math3.random.JDKRandomGenerator
 import org.apache.commons.math3.random.RandomGenerator
 import org.apache.commons.math3.random.SynchronizedRandomGenerator
-import skysim.sky.programmName
 import java.io.BufferedWriter
-import java.lang.Exception
-import java.nio.file.Files
 import java.nio.file.Paths
 import kotlin.system.exitProcess
 
@@ -133,14 +129,16 @@ fun createOptins(): Options {
             .builder()
             .longOpt("seed-photons")
             .hasArg(true)
-            .desc(("""
+            .desc(
+                ("""
                 set the path to file contains list of seed photons in next format:
                 POSITION_X POSITION_Y POSITION_Z DIRECTION_X DIRECTION_Y DIRECTION_Z ENERGY NUMBER
                 POSITION_X POSITION_Y POSITION_Z DIRECTION_X DIRECTION_Y DIRECTION_Z ENERGY NUMBER
                 ...
                 by default using:
                 0.0 0.0 cloud-size/2 0.0 0.0 -1.0 1.0 1
-            """.trimIndent()))
+            """.trimIndent())
+            )
             .required(false)
             .argName("FILENAME")
             .build()
@@ -181,7 +179,7 @@ fun parseError(exp: Exception, messege: String = "") {
     exitProcess(1)
 }
 
-fun getAtmosphere(cmd: CommandLine, rng :RandomGenerator): SimpleAtmosphere {
+fun getAtmosphere(cmd: CommandLine, rng: RandomGenerator): SimpleAtmosphere {
     val init = object {
         var multiplication: Double = 2.0
         var photonFreePath: Double = 100.0
@@ -234,49 +232,50 @@ fun getRandomGenerator(cmd: CommandLine): RandomGenerator {
     return SynchronizedRandomGenerator(JDKRandomGenerator())
 }
 
-fun getSeed(cmd: CommandLine, atmosphere: SimpleAtmosphere) : List<Particle>{
+fun getSeed(cmd: CommandLine, atmosphere: SimpleAtmosphere): List<Particle> {
     if (cmd.hasOption("seed-photons")) {
         try {
             val path = Paths.get(cmd.getOptionValue("seed-photons"))
             val text = path.toFile().readText().split("\n")
             return text.map {
                 val temp = it.split(" ")
-                if(temp.size < 7){
+                if (temp.size < 7) {
                     error("Bad format of input file with seed photons")
                 }
                 val position = Vector3D(temp[0].toDouble(), temp[1].toDouble(), temp[2].toDouble())
                 val direction = Vector3D(temp[3].toDouble(), temp[4].toDouble(), temp[5].toDouble())
                 val energy = temp[6].toDouble()
-                val number : Int
-                if (temp.size == 7){
+                val number: Int
+                if (temp.size == 7) {
                     number = 1
-                }
-                else{
+                } else {
                     number = temp[7].toInt()
                 }
-                List(number){
+                List(number) {
                     Photon(position, direction, energy)
                 }
-            }.reduce { acc, list ->  acc + list}
+            }.reduce { acc, list -> acc + list }
         } catch (exp: Exception) {
-            parseError(exp, "Options seed-photons can't be equal ${cmd.getOptionValue("seed-photons")} or input file have bad format\n")
+            parseError(
+                exp,
+                "Options seed-photons can't be equal ${cmd.getOptionValue("seed-photons")} or input file have bad format\n"
+            )
         }
     }
     return listOf(Photon(Vector3D(0.0, 0.0, atmosphere.cloudSize / 2), Vector3D(0.0, 0.0, -1.0), 1.0))
 }
 
-fun getWriter(cmd: CommandLine) : (index: Int, generation: Collection<Particle>)-> Unit {
+fun getWriter(cmd: CommandLine): (index: Int, generation: Collection<Particle>) -> Unit {
     val writer: BufferedWriter
-    val template : (Int, Int, Double) -> String
-    if (cmd.hasOption("o")){
+    val template: (Int, Int, Double) -> String
+    if (cmd.hasOption("o")) {
         val path = Paths.get(cmd.getOptionValue("o")).toFile()
         writer = path.bufferedWriter()
         writer.write("%10s %7s %7s".format("generation", "number", "height\n"))
-        template = { i: Int, i1: Int, d: Double -> "%10d %7d %7.2f\n".format(i,i1,d)}
-    }
-    else{
+        template = { i: Int, i1: Int, d: Double -> "%10d %7d %7.2f\n".format(i, i1, d) }
+    } else {
         writer = System.out.bufferedWriter()
-        template = { i: Int, i1: Int, d: Double -> "There are $i1 photons in generation $i . Average height is $d\n"}
+        template = { i: Int, i1: Int, d: Double -> "There are $i1 photons in generation $i . Average height is $d\n" }
     }
     return { index: Int, generation: Collection<Particle> ->
         val height = generation.map { it.origin.z }.average()
