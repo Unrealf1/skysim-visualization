@@ -2,6 +2,12 @@
 class VisualizerPreparator {
     +camera : Camera
     -prepareVisualizationCamera()
+    +boxField : Box
     +prepareVisualization() : Visualizer
 }
+
+!include MouseController.puml
+VisualizerPreparator --> MouseController : Calls initMouseControl >
+VisualizerPreparator -- SimulationParameters
+
 @enduml

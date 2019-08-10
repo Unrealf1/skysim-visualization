@@ -27,4 +27,9 @@ class UIPreparator {
     -prepareCubeToggleBox(): CheckBox
     +prepareUI(visualizer: Visualizer, mainStage: Stage): Node
 }
+UIPreparator --> Visualizer : Calls\n.size(),\ngetCurrentGen(),\nshowNextGeneration(),\nshowPrevGeneration(),\nsetCurrentGen(),\nclear() >
+UIPreparator --> Companion : Calls names >
+UIPreparator -- EButton : Use >
+UIPreparator -- SimulationParameters
+
 @enduml

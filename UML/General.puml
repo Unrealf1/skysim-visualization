@@ -10,8 +10,7 @@ package "Simulation" {
        !include Compatibility.puml
 }
 
-Compatibility -- App
+Compatibility <-- App : Calls launchSkysim() <
 SimulationParameters -- App
-Visualizer -- App
 
 @enduml

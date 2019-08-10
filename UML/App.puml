@@ -34,9 +34,10 @@ App +-- Companion
 App +-- UIWidth
 App +-- VSWidth
 App +-- MouseController
-App +-- UIPreparator
-App +-- VisualizerPreparator
+App +-- UIPreparator : Calls prepareUI >
+App +-- VisualizerPreparator : Calls prepareVisualization >
 App +-- EButton
+
 
 Application <|-- App
 @enduml
