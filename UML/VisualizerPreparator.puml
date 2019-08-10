@@ -1,0 +1,7 @@
+@startuml
+class VisualizerPreparator {
+    +camera : Camera
+    -prepareVisualizationCamera()
+    +prepareVisualization() : Visualizer
+}
+@enduml

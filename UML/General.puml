@@ -1,0 +1,17 @@
+@startuml
+
+package "Visualization" #DDDDDD {
+    !include App.puml
+    !include Visualizer.puml
+    !include SimulationParameters.puml
+}
+
+package "Simulation" {
+       !include Compatibility.puml
+}
+
+Compatibility -- App
+SimulationParameters -- App
+Visualizer -- App
+
+@enduml

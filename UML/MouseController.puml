@@ -1,0 +1,11 @@
+@startuml
+class MouseController {
+    -anchorX : Double
+    -anchorY : Double
+    -anchorAngleX : Double
+    -anchorAngleY : Double
+    -angleX : Double
+    -angleY : Double
+    +initMouseControl(group: Group, scene: SubScene)
+}
+@enduml

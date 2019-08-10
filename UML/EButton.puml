@@ -1,0 +1,9 @@
+@startuml
+enum EButton {
+    stop
+    back
+    play
+    forward
+    pause
+}
+@enduml

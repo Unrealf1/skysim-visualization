@@ -1,0 +1,30 @@
+@startuml
+
+class UIPreparator {
+    -playButton : Button
+    -playTimeline : Timeline
+    +controlCounter : SimpleStringProperty
+    +updateControlCounter(visualizer: Visualizer)
+    +makeArrow(handleUp: Point2D, middleUp: Point2D, point: Point2D) : Polygon
+    -prepareButtonVisual(button: EButton): Node
+    -doPause()
+    -doPlay()
+    -doStop()
+    -prepareControlPanel(visualizer: Visualizer): Node
+    -parametersHorizontalSpacing : Double
+    -parametersVerticalSpacing : Double
+    -prepareParameterLine(name: String, parameter: SimpleStringProperty): Node
+    -prepareUIParameters(): Node
+    -helpParametersFontSize : Double
+    -helpFontSize : Double
+    -prepareHelpParameter(name: String, type: String, description: String): Node
+    -generalHelpText : String
+    -prepareGeneralHelp(): Node
+    -prepareHelp(): Node
+    -prepareHelpButton(): Button
+    -prepareStartButton(visualizer: Visualizer): Button
+    -prepareFullScreenButton(mainStage: Stage): Button
+    -prepareCubeToggleBox(): CheckBox
+    +prepareUI(visualizer: Visualizer, mainStage: Stage): Node
+}
+@enduml

@@ -1,0 +1,42 @@
+@startuml
+!include UIWidth.puml
+!include VSWidth.puml
+!include MouseController.puml
+!include UIPreparator.puml
+!include VisualizerPreparator.puml
+!include EButton.puml
+
+abstract class Application
+
+class App {
+    -windowWidth: ObservableDoubleValue
+    -visualizationWidth: ObservableDoubleValue
+    -visualizationWidth : VSWidth
+    -visualizationHeight : SimpleDoubleProperty
+    -uiWidth : UIWidth
+    -uiHeight : SimpleDoubleProperty
+    -mouseController : MouseController
+    -visualizerPreparator : VisualizerPreparator
+    -uiPreparator : UiPreparator
+    +simulationParameters : SimulationParameters
+    -bindProperties(mainStage: Stage)
+    +start(mainStage: Stage)
+}
+
+class Companion {
+    +Names : String[]
+    +version : String
+    +versionMessage
+    +getGreeting()
+}
+
+App +-- Companion
+App +-- UIWidth
+App +-- VSWidth
+App +-- MouseController
+App +-- UIPreparator
+App +-- VisualizerPreparator
+App +-- EButton
+
+Application <|-- App
+@enduml

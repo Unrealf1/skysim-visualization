@@ -1,0 +1,7 @@
+@startuml
+!include DoubleBinding.puml
+
+DoubleBinding <|-- VSWidth
+
+VSWidth : +computeValue()
+@enduml

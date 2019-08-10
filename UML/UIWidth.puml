@@ -1,0 +1,9 @@
+@startuml
+
+!include DoubleBinding.puml
+
+DoubleBinding <|-- UIWidth
+
+UIWidth : +computeValue()
+
+@enduml
