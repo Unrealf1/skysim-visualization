@@ -1,0 +1,20 @@
+@startuml
+!include Generation.puml
+
+class Visualizer {
+    -generations : ArrayList<Generation>
+    -photonRadius : Double
+    -current_gen : Int
+    +getCurrentGen(): Int
+    +size(): Int
+    +clear()
+    +addGeneration(gen: Generation)
+    -clearPhotonGroup()
+    +setCurrentGen(value: Int): Boolean
+    +showNextGeneration(): Boolean
+    +showPrevGeneration(): Boolean
+    -showGeneration()
+}
+
+Visualizer +-- Generation
+@enduml

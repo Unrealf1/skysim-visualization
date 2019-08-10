@@ -1,0 +1,7 @@
+@startuml
+
+class Generation {
+    +photons: ArrayList<Point3D>
+}
+
+@enduml

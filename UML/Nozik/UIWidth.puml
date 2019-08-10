@@ -1,0 +1,5 @@
+@startuml
+
+UIWidth : +computeValue()
+
+@enduml

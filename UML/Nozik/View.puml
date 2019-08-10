@@ -1,0 +1,53 @@
+@startuml
+
+class View {
+    +model: SimulationViewModel
+    +width: ObservableDoubleValue
+    +height: ObservableDoubleValue
+    -playButton : Button
+    -playTimeline : Timeline
+    +controlCounter : SimpleStringProperty
+    +updateControlCounter(visualizer: Visualizer)
+    -makeArrow(handleUp: Point2D, middleUp: Point2D, point: Point2D) : Polygon
+    -prepareButtonVisual(button: EButton): Node
+    -doPause()
+    -doPlay()
+    -doStop()
+    -VBox.controlPanel(canvas: Canvas3D): Node
+    -parametersHorizontalSpacing : Double
+    -parametersVerticalSpacing : Double
+    -VBox.field(labelText: String, parameter: Property<T>, converter: StringConverter<T>): Node
+    -VBox.field(labelText: String, parameter: Property<T>)
+    -form(): Node
+    -helpParametersFontSize : Double
+    -helpFontSize : Double
+    -prepareHelpParameter(name: String, type: String, description: String): Node
+    -prepareGeneralHelp(): Node
+    -prepareHelp(): Node
+    -VBox.helpButton(): Button
+    -VBox.startButton(canvas: Canvas3D): Button
+    -VBox.fullScreenButton(mainStage: Stage): Button
+    -VBox.cubeToggleBox(): CheckBox
+    +buildRoot(mainStage: Stage): Parent
+    -controls(mainStage: Stage, canvas: Canvas3D): VBox
+}
+
+object companion {
+    cellLength : String
+    cloudSize : String
+    fieldMagnitude : String
+    freePath : String
+    gain : String
+    particleLimit : String
+    output : String
+    seed : String
+    savePlot : String
+    seedPhotons : String
+    dynamicPlot : String
+    generalHelpText : String
+}
+
+View +-- companion
+View --> Canvas3D : Create >
+
+@enduml

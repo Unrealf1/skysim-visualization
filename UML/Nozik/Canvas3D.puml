@@ -1,0 +1,24 @@
+@startuml
+
+class Canvas3D {
+    +model: SimulationViewModel
+    +width: ObservableDoubleValue
+    +height: ObservableDoubleValue
+    +camera: Camera
+    -buildCamera(): Camera
+    +boxField: Box
+    -anchorX: Double
+    -anchorY: Double
+    -anchorAngleX: Double
+    -anchorAngleY: Double
+    -angleX: Double
+    -angleY: Double
+    -initMouseControl(group: Group, scene: SubScene)
+    -prepareVisualization(): Visualizer
+    +visualizer: Visualizer
+}
+
+Canvas3D --> Visualizer : Create >
+Canvas3D -- SimulationViewModel : Use >
+
+@enduml

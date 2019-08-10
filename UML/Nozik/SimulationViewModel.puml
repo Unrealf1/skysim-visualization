@@ -1,0 +1,16 @@
+@startuml
+class SimulationViewModel {
+    +cellLength: SimpleDoubleProperty
+    +cloudSize: SimpleDoubleProperty
+    +dynamicPlot: SimpleBooleanProperty//
+    +fieldMagnitude: SimpleDoubleProperty
+    +freePath: SimpleDoubleProperty
+    +gain: SimpleDoubleProperty
+    +particleLimit: SimpleIntegerProperty
+    +output: SimpleStringProperty
+    +seed: SimpleIntegerProperty
+    +savePlot: SimpleStringProperty
+    +seedPhotons: SimpleStringProperty
+    +showBox: SimpleBooleanProperty
+}
+@enduml

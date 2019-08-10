@@ -1,0 +1,44 @@
+@startuml
+
+class App {
+    -windowWidth: SimpleDoubleProperty
+    -windowHeight: SimpleDoubleProperty
+    -visualizationWidth : VSWidth
+    -visualizationHeight : SimpleDoubleProperty
+    -uiWidth : UIWidth
+    -uiHeight : SimpleDoubleProperty
+    -simulationParameters : SimulationViewModel
+    -bindProperties(mainStage: Stage)
+    +start(mainStage: Stage)
+}
+
+enum EButton {
+    stop
+    back
+    play
+    forward
+    pause
+}
+
+class companion_ {
+    version: String
+    VERSION_MESSAGE: String
+}
+
+class UnitStringConverter
+class StringConverter <<String>>
+StringConverter <|-- UnitStringConverter
+
+!include UIWidth.puml
+!include VSWidth.puml
+
+App +-- EButton
+App +-- UnitStringConverter
+App +-- companion_
+App +-- UIWidth
+App +-- VSWidth
+
+App --> SimulationViewModel : Create >
+App --> View : Create >
+
+@enduml

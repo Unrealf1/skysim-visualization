@@ -1,0 +1,8 @@
+@startuml
+class Compatibility {
+    +composeArgs(param: SimulationParameters): ArrayList<String>
+    +launchSkysim(args: SimulationParameters): Channel<Generation>
+}
+
+Compatibility -- Skysim
+@enduml

@@ -1,0 +1,18 @@
+@startuml
+
+package "Visualization" #DDDDDD {
+    !include App.puml
+    !include Canvas3D.puml
+    !include SimulationViewModel.puml
+    !include View.puml
+    !include Visualizer.puml
+}
+
+
+package "Simulation" {
+    !include Compatibility.puml
+}
+
+App --> Compatibility : Calls launchSkysim() <
+
+@enduml
