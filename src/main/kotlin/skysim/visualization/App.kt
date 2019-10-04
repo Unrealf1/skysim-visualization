@@ -673,17 +673,17 @@ class App(
 
     companion object {
         object Names {
-            val cellLength = "cell-length"
-            val cloudSize = "cloud-size"
-            val fieldMagnitude = "field-magnitude"
-            val freePath = "free-path"
-            val gain = "gain"
-            val particleLimit = "particle-limit"
-            val output = "output"
-            val seed = "seed"
-            val savePlot = "save-plot"
-            val seedPhotons = "seed-photons"
-            val dynamicPlot = "dynamic-plot"
+            const val cellLength = "cell-length"
+            const val cloudSize = "cloud-size"
+            const val fieldMagnitude = "field-magnitude"
+            const val freePath = "free-path"
+            const val gain = "gain"
+            const val particleLimit = "particle-limit"
+            const val output = "output"
+            const val seed = "seed"
+            const val savePlot = "save-plot"
+            const val seedPhotons = "seed-photons"
+            const val dynamicPlot = "dynamic-plot"
         }
         private const val version = "1.0.0"
 

@@ -3,6 +3,9 @@ package skysim.visualization
 import javafx.geometry.Point3D
 import javafx.scene.Group
 import javafx.scene.SubScene
+import javafx.scene.paint.Color
+import javafx.scene.paint.Material
+import javafx.scene.paint.PhongMaterial
 import javafx.scene.shape.Sphere
 
 class Generation(
@@ -76,6 +79,7 @@ class Visualizer(val scene: SubScene, val  photonGroup: Group) {
         val gen = generations[current_gen]
         for (photon in gen.photons) {
             val visual_photon = Sphere(photonRadius)
+            visual_photon.material = PhongMaterial(Color.LIGHTGREEN)
             visual_photon.translateXProperty().set(photon.x)
             visual_photon.translateYProperty().set(photon.y)
             visual_photon.translateZProperty().set(photon.z)
